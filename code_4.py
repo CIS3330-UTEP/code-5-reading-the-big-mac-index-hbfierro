@@ -1,28 +1,28 @@
 import csv 
 import pandas as pd
 big_mac_file = './big-mac-full-index.csv'
-df=big_mac_file
+df = pd.read_csv("big-mac-full-index.csv")
 
 
 def get_big_mac_price_by_year(year,country_code): 
-    date_find = round(df.loc[(df['year'] == year) & (df['iso_a3'].str.upper() == country_code), 'dollar_price'].mean(), 2)
-    return date_find
+    data = df.query(f"'{year}-01-01' <= date <= '{year}-12-31' and iso_a3 == '{country_code.upper()}'")
+    return round(data['dollar_price'].mean(), 2)
 
 def get_big_mac_price_by_country(country_code):
-    dollar_price = round([df['iso_a3'].str.lower() == country_code, 'dollar_price'].mean(), 2)
-    return dollar_price
+    data = df.query(f"iso_a3 == '{country_code.upper()}'")
+    return round(data['dollar_price'].mean(), 2)
 
 def get_the_cheapest_big_mac_price_by_year(year):
-    filtered_df = df[df['year'] == year].nsmallest(1, 'dollar_price')
-    row = filtered_df.iloc[0]
-    return f"{row['name']}({row['iso_a3']}): ${round(row['dollar_price'], 2)}"
+    data = df.query(f"'{year}-01-01' <= date <= '{year}-12-31'")
+    cheapest = data.loc[data['dollar_price'].idxmin()]
+    return f"{cheapest['name']} ({cheapest['iso_a3']}): ${round(cheapest['dollar_price'], 2)}"
 
 def get_the_most_expensive_big_mac_price_by_year(year):
-    row = df.loc[df['year'] == year].nlargest(1, 'dollar_price').iloc[0]
-    return f"{row['name']}({row['iso_a3']}): ${round(row['dollar_price'], 2)}"
+    data = df.query(f"'{year}-01-01' <= date <= '{year}-12-31'")
+    expensive = data.loc[data['dollar_price'].idxmax()]
+    return f"{expensive['name']} ({expensive['iso_a3']}): ${round(expensive['dollar_price'], 2)}"
 
 if __name__ == "__main__":
-    df= pd.read_csv('./big-mac-full-index.csv')
     year = int(input("Enter year: ").strip())
     country_code = input("Enter the country code (lowercase): ").strip().lower()
     print(get_big_mac_price_by_year(year, country_code))
